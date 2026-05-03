@@ -19,27 +19,22 @@ def get_sheet():
 page = st.sidebar.radio("Go to", ["Survey", "Value Map (HVM)"])
 
 if page == "Survey":
-    st.title("AI Laddering Survey")
+    st.title("Eating Out Survey")
+    st.write("Think about the last time you ate outside of home.")
 
-    context   = st.text_area("1. What were you trying to do when you used an AI tool?")
-    tool      = st.text_input("2. Which AI tool did you use?")
-    attribute = st.text_area("3. What specific feature or thing about it mattered to you?")
-    why1      = st.text_area("4. Why did that matter? What did it help you do?")
-    why2      = st.text_area("5. And why does that matter to you on a deeper level?")
-    value     = st.text_area("6. What does that give you in life or work overall?")
+    attribute = st.text_area("1. Think of the most recent time you ate outside of home. What specifically made you choose that meal?")
+    why1      = st.text_area("2. Why did that matter — what did it do for you?")
+    value     = st.text_area("3. What did that give you — in that moment or that day?")
 
     if st.button("Submit"):
 
         prompt = f"""
 You are a market research analyst using means-end theory.
-Classify these answers. Return ONLY a JSON object, no extra text, no markdown.
+Classify these answers about eating outside of home. Return ONLY a JSON object, no extra text, no markdown.
 
-Context: {context}
-Tool used: {tool}
-Attribute: {attribute}
-Functional consequence: {why1}
-Deeper consequence: {why2}
-Value: {value}
+Attribute (what they chose): {attribute}
+Consequence (why it mattered): {why1}
+Value (what it gives them in life): {value}
 
 Return exactly this format:
 {{
@@ -80,17 +75,22 @@ Return exactly this format:
 
         try:
             data = json.loads(text)
+        except:
+            st.error("Could not read the AI response as JSON.")
+            st.write(text)
+            st.stop()
 
-            st.subheader("Your Ladder")
-            st.write("**Attribute:**",              data["coded_attribute"])
-            st.write("**Functional Consequence:**", data["coded_functional_consequence"])
-            st.write("**Emotional Consequence:**",  data["coded_emotional_consequence"])
-            st.write("**Value:**",                  data["coded_value"])
-            st.write("**Summary:**",                data["short_ladder_summary"])
+        st.subheader("Your Ladder")
+        st.write("**Attribute:**",              data["coded_attribute"])
+        st.write("**Functional Consequence:**", data["coded_functional_consequence"])
+        st.write("**Emotional Consequence:**",  data["coded_emotional_consequence"])
+        st.write("**Value:**",                  data["coded_value"])
+        st.write("**Summary:**",                data["short_ladder_summary"])
 
+        try:
             sheet = get_sheet()
             sheet.append_row([
-                context, tool, attribute, why1, why2, value,
+                attribute, why1, value,
                 data["coded_attribute"],
                 data["coded_functional_consequence"],
                 data["coded_emotional_consequence"],
@@ -98,10 +98,8 @@ Return exactly this format:
                 data["short_ladder_summary"]
             ])
             st.success("Response saved.")
-
-        except:
-            st.error("Something went wrong parsing the response.")
-            st.write(text)
+        except Exception as e:
+            st.warning(f"Ladder displayed but could not save to Google Sheets: {e}")
 
 elif page == "Value Map (HVM)":
     st.title("Hierarchical Value Map")
