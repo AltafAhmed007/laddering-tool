@@ -66,7 +66,7 @@ Return exactly:
                 "Content-Type": "application/json"
             },
             json={
-               "model": "meta-llama/llama-3.2-3b-instruct:free",
+              "model": "microsoft/phi-3-mini-128k-instruct:free",
                 "messages": [{"role": "user", "content": prompt}]
             }
         )
