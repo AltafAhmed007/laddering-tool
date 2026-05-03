@@ -66,7 +66,7 @@ Return exactly:
                 "Content-Type": "application/json"
             },
             json={
-              "model": "microsoft/phi-3-mini-128k-instruct:free",
+              "model": "deepseek/deepseek-chat-v3-0324:free",
                 "messages": [{"role": "user", "content": prompt}]
             }
         )
