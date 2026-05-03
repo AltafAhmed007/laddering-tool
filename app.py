@@ -66,7 +66,7 @@ Return exactly:
                 "Content-Type": "application/json"
             },
             json={
-              ""model": "llama-3.3-70b-versatile",
+              "model": "llama-3.3-70b-versatile",
                 "messages": [{"role": "user", "content": prompt}]
             }
         )
