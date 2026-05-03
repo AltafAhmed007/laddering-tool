@@ -60,13 +60,13 @@ Return exactly:
 }}
 """
         response = requests.post(
-            "https://openrouter.ai/api/v1/chat/completions",
+            "https://api.groq.com/openai/v1/chat/completions",
             headers={
-                "Authorization": f"Bearer {st.secrets['OPENROUTER_API_KEY']}",
+                "Authorization": f"Bearer {st.secrets['GROQ_API_KEY']}",
                 "Content-Type": "application/json"
             },
             json={
-              "model": "deepseek/deepseek-chat-v3-0324:free",
+              ""model": "llama-3.3-70b-versatile",
                 "messages": [{"role": "user", "content": prompt}]
             }
         )
