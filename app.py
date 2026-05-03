@@ -72,7 +72,14 @@ Return exactly:
         )
 
         result = response.json()
-        text   = result["choices"][0]["message"]["content"]
+        # Temporary: show the raw API response so we can see what went wrong
+        st.write("Raw API response:", result)
+
+        if "choices" not in result:
+            st.error("OpenRouter did not return a valid response. See raw response above.")
+            st.stop()
+
+        text = result["choices"][0]["message"]["content"]
 
         try:
             data = json.loads(text)
