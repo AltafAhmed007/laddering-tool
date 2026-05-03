@@ -66,7 +66,7 @@ Return exactly:
                 "Content-Type": "application/json"
             },
             json={
-                "model": "google/gemma-3-4b-it:free",
+                "model": "qwen/qwen-2.5-7b-instruct:free",
                 "messages": [{"role": "user", "content": prompt}]
             }
         )
