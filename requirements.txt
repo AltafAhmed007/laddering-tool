@@ -1,2 +1,6 @@
 streamlit
 requests
+gspread
+google-auth
+networkx
+matplotlib
