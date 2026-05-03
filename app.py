@@ -7,8 +7,6 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
-# ── Connect to Google Sheets ──────────────────────────────────────────────────
-
 def get_sheet():
     creds = Credentials.from_service_account_info(
         st.secrets["gcp_service_account"],
@@ -18,13 +16,7 @@ def get_sheet():
     client = gspread.authorize(creds)
     return client.open_by_key(st.secrets["SHEET_ID"]).sheet1
 
-# ── Page selector ─────────────────────────────────────────────────────────────
-
 page = st.sidebar.radio("Go to", ["Survey", "Value Map (HVM)"])
-
-# ══════════════════════════════════════════════════════════════════════════════
-# PAGE 1 — SURVEY
-# ══════════════════════════════════════════════════════════════════════════════
 
 if page == "Survey":
     st.title("AI Laddering Survey")
@@ -38,10 +30,9 @@ if page == "Survey":
 
     if st.button("Submit"):
 
-        # Send to OpenRouter for coding
         prompt = f"""
 You are a market research analyst using means-end theory.
-Classify these answers. Return ONLY a JSON object, no extra text.
+Classify these answers. Return ONLY a JSON object, no extra text, no markdown.
 
 Context: {context}
 Tool used: {tool}
@@ -50,7 +41,7 @@ Functional consequence: {why1}
 Deeper consequence: {why2}
 Value: {value}
 
-Return exactly:
+Return exactly this format:
 {{
   "coded_attribute": "",
   "coded_functional_consequence": "",
@@ -59,6 +50,7 @@ Return exactly:
   "short_ladder_summary": ""
 }}
 """
+
         response = requests.post(
             "https://api.groq.com/openai/v1/chat/completions",
             headers={
@@ -66,12 +58,12 @@ Return exactly:
                 "Content-Type": "application/json"
             },
             json={
-              "model": "llama-3.3-70b-versatile",
+                "model": "llama-3.3-70b-versatile",
                 "messages": [{"role": "user", "content": prompt}]
             }
         )
 
-       result = response.json()
+        result = response.json()
 
         if "choices" not in result:
             st.error("API did not return a valid response.")
@@ -79,7 +71,6 @@ Return exactly:
             st.stop()
 
         text = result["choices"][0]["message"]["content"]
-        # Clean up any formatting the model adds around the JSON
         text = text.strip()
         if text.startswith("```"):
             text = text.split("```")[1]
@@ -90,15 +81,13 @@ Return exactly:
         try:
             data = json.loads(text)
 
-            # Show result to user
             st.subheader("Your Ladder")
-            st.write("**Attribute:**",               data["coded_attribute"])
-            st.write("**Functional Consequence:**",  data["coded_functional_consequence"])
-            st.write("**Emotional Consequence:**",   data["coded_emotional_consequence"])
-            st.write("**Value:**",                   data["coded_value"])
-            st.write("**Summary:**",                 data["short_ladder_summary"])
+            st.write("**Attribute:**",              data["coded_attribute"])
+            st.write("**Functional Consequence:**", data["coded_functional_consequence"])
+            st.write("**Emotional Consequence:**",  data["coded_emotional_consequence"])
+            st.write("**Value:**",                  data["coded_value"])
+            st.write("**Summary:**",                data["short_ladder_summary"])
 
-            # Save to Google Sheets
             sheet = get_sheet()
             sheet.append_row([
                 context, tool, attribute, why1, why2, value,
@@ -111,26 +100,20 @@ Return exactly:
             st.success("Response saved.")
 
         except:
-            st.error("Something went wrong. Raw response:")
+            st.error("Something went wrong parsing the response.")
             st.write(text)
-
-# ══════════════════════════════════════════════════════════════════════════════
-# PAGE 2 — HVM
-# ══════════════════════════════════════════════════════════════════════════════
 
 elif page == "Value Map (HVM)":
     st.title("Hierarchical Value Map")
 
-    # Minimum number of people who must share a connection for it to appear
     cutoff = st.slider("Minimum connections to show a link", 1, 10, 2)
 
     sheet = get_sheet()
-    rows  = sheet.get_all_records()  # Each row = one survey response
+    rows  = sheet.get_all_records()
 
     if len(rows) == 0:
         st.warning("No responses yet. Complete some surveys first.")
     else:
-        # Count how often each connection appears
         edge_counts = defaultdict(int)
 
         for row in rows:
@@ -139,7 +122,6 @@ elif page == "Value Map (HVM)":
             ec = row.get("coded_emotional_consequence", "").strip()
             v  = row.get("coded_value", "").strip()
 
-            # Only count a connection if both ends have a label
             if a and fc:
                 edge_counts[(a, fc)] += 1
             if fc and ec:
@@ -147,7 +129,6 @@ elif page == "Value Map (HVM)":
             if ec and v:
                 edge_counts[(ec, v)] += 1
 
-        # Build the network
         G = nx.DiGraph()
 
         for (source, target), count in edge_counts.items():
@@ -157,10 +138,9 @@ elif page == "Value Map (HVM)":
         if len(G.edges()) == 0:
             st.info(f"No connections appear {cutoff}+ times yet. Try lowering the slider or adding more responses.")
         else:
-            # Draw the map
             fig, ax = plt.subplots(figsize=(12, 7))
 
-            pos    = nx.spring_layout(G, seed=42, k=2)
+            pos     = nx.spring_layout(G, seed=42, k=2)
             weights = [G[u][v]["weight"] for u, v in G.edges()]
 
             nx.draw_networkx_nodes(G, pos, node_size=2000,
