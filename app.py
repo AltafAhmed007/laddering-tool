@@ -71,15 +71,21 @@ Return exactly:
             }
         )
 
-        result = response.json()
-        # Temporary: show the raw API response so we can see what went wrong
-        st.write("Raw API response:", result)
+       result = response.json()
 
         if "choices" not in result:
-            st.error("OpenRouter did not return a valid response. See raw response above.")
+            st.error("API did not return a valid response.")
+            st.write(result)
             st.stop()
 
         text = result["choices"][0]["message"]["content"]
+        # Clean up any formatting the model adds around the JSON
+        text = text.strip()
+        if text.startswith("```"):
+            text = text.split("```")[1]
+            if text.startswith("json"):
+                text = text[4:]
+        text = text.strip()
 
         try:
             data = json.loads(text)
