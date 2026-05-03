@@ -66,7 +66,7 @@ Return exactly:
                 "Content-Type": "application/json"
             },
             json={
-                "model": "qwen/qwen-2.5-7b-instruct:free",
+               "model": "meta-llama/llama-3.2-3b-instruct:free",
                 "messages": [{"role": "user", "content": prompt}]
             }
         )
