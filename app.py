@@ -226,12 +226,3 @@ elif page == "Value Map (HVM)":
             """)
 
         st.write(f"Based on **{len(rows)} responses** | Showing links appearing **{cutoff}+** times")
-
-Color scheme: "default"
-Node shape: "rounded"
-Node width: 100px
-Node height: 34px
-Font size: 11px
-Line weight multiplier: 1
-Show counts: true
-Min connections: 6
